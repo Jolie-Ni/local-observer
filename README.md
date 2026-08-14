@@ -125,11 +125,3 @@ There is no config file yet. Tunables live in `Sources/ObserverCore/Config.swift
 | `excludedURLHostFragments` | `bank`, `chase.com`, `wellsfargo.com`, `1password.com` |
 
 Analysis lookback (7 days), session gap (5 min), and labeling batch size (12) are currently constructor defaults in `AnalysisRunner`, `SessionClusterer`, and `LabelingService`.
-
-## Status
-
-Prototype. Working: capture, OCR, redaction, storage, clustering, both analysis passes, dashboard. Known gaps:
-
-- Accepted workflows are stored but don't execute anything yet.
-- Token usage is tracked in the result type but not surfaced in the UI.
-- No app bundle — the daemon is a bare SPM executable, which makes permission grants fragile.
