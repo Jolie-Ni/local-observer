@@ -2,7 +2,7 @@ import Foundation
 import ObserverCore
 
 final class CaptureCoordinator {
-    private var timer: Timer?
+    private var loop: Task<Void, Never>?
     private let storage: Storage
     private let ocr = OCR()
     private let redactor = Redactor()
@@ -21,22 +21,27 @@ final class CaptureCoordinator {
         }
     }
 
+    /// A serial task loop rather than a `Timer`: capture is async now, and this
+    /// way a slow tick delays the next one instead of overlapping with it. The
+    /// first sample fires immediately — the sleep is at the end.
     func start() {
-        let t = Timer(timeInterval: Config.captureIntervalSeconds, repeats: true) { [weak self] _ in
-            self?.tick()
+        loop = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.tick()
+                try? await Task.sleep(for: .seconds(Config.captureIntervalSeconds))
+            }
         }
-        RunLoop.main.add(t, forMode: .common)
-        timer = t
-        // Fire one immediately so the first sample doesn't take 30s.
-        tick()
     }
 
     func stop() {
-        timer?.invalidate()
-        timer = nil
+        loop?.cancel()
+        loop = nil
     }
 
-    private func tick() {
+    /// Main-actor bound: the frontmost-app lookup (`NSWorkspace`) and the
+    /// browser-URL fetch (`NSAppleScript`) both want the main thread.
+    @MainActor
+    private func tick() async {
         // Maintenance: purge old captures once a day.
         if Date().timeIntervalSince(lastPurgeDate) > 86_400 {
             try? storage.purgeOlderThan(days: Config.retentionDays)
@@ -60,10 +65,7 @@ final class CaptureCoordinator {
 
         if let u = url, isExcludedURL(u) { return }
 
-        guard let image = Screenshot.capture() else {
-            print("[observer] screenshot failed (permission?)")
-            return
-        }
+        guard let image = await Screenshot.capture() else { return }
 
         let screenshotPath = Screenshot.save(image, dir: Config.screenshotsDir)
         let rawOCR = ocr.recognize(image: image)
