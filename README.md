@@ -118,7 +118,7 @@ There is no config file yet. Tunables live in `Sources/ObserverCore/Config.swift
 |---|---|
 | `captureIntervalSeconds` | 30 |
 | `idleThresholdSeconds` | 120 |
-| `retentionDays` | 14 |
+| `retentionDays` | 30 |
 | `screenshotMaxDimension` | 1920 |
 | `jpegQuality` | 0.5 |
 | `excludedBundleIDs` | 1Password, Keychain Access, login window |

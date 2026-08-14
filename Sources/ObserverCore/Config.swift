@@ -3,7 +3,7 @@ import Foundation
 public enum Config {
     public static let captureIntervalSeconds: TimeInterval = 30
     public static let idleThresholdSeconds: TimeInterval = 120
-    public static let retentionDays: Int = 14
+    public static let retentionDays: Int = 30
     public static let screenshotMaxDimension: Int = 1920
     public static let jpegQuality: Double = 0.5
 
